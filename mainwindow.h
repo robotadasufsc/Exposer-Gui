@@ -9,6 +9,8 @@ namespace Ui {
 class MainWindow;
 }
 
+class SerialLayer;
+
 class mMainWindow : public QMainWindow
 {
 
@@ -20,11 +22,17 @@ private:
     Ui::MainWindow *ui;
     QTimer *updateTimer;
     QTimer *dataTimer;
+    SerialLayer *ser;
+
     void update();
     void updateData();
     void updateTree();
     void checkTree(QTreeWidgetItem *item, int column);
     void checkStartButton();
+    QString getTime();
+    void  addLog(QByteArray msg);
+    void checkReceivedCommand();
+    void checkPushedCommands(QByteArray bmsg);
     uint numberofLists;
     bool running;
 

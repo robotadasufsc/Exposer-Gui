@@ -1,4 +1,6 @@
+#include <QTime>
 #include "mainwindow.h"
+#include "seriallayer.h"
 #include "ui_mainwindow.h"
 
 mMainWindow::mMainWindow(QWidget *parent) :
@@ -6,6 +8,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     updateTimer(new QTimer(this)),
     dataTimer(new QTimer(this)),
+    ser(new SerialLayer("/dev/ttyUSB0", 115200)),
     numberofLists(4),
     running(true)
 {
@@ -24,6 +27,40 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui->treeWidget->setHeaderLabel("Plots");
     connect(ui->treeWidget, &QTreeWidget::itemChanged, this, &mMainWindow::checkTree);
     connect(ui->pushButton, &QPushButton::clicked, this, &mMainWindow::checkStartButton);
+
+    connect(ser, &SerialLayer::receivedCommand, this, &mMainWindow::checkReceivedCommand);
+    connect(ser, &SerialLayer::pushedCommand, this, &mMainWindow::checkPushedCommands);
+}
+
+QString mMainWindow::getTime()
+{
+    return QTime::currentTime().toString("hh:mm:ss:zzz");
+}
+
+void  mMainWindow::addLog(QByteArray msg)
+{
+    QString msgHex;
+    msgHex.append("[");
+    for(const auto byte: msg)
+    {
+        msgHex.append(QString::number(byte, 16));
+        msgHex.append(" ");
+    }
+    msgHex.append("]");
+    const QString text = QString("[%1] ").arg(getTime()) + msgHex;
+    qDebug() << text;
+    ui->console->appendPlainText(text);
+}
+
+void mMainWindow::checkReceivedCommand()
+{
+    if(ser->commandAvailable())
+        addLog(ser->popCommand());
+}
+
+void mMainWindow::checkPushedCommands(QByteArray bmsg)
+{
+    qDebug() << bmsg;
 }
 
 void mMainWindow::updateData()

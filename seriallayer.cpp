@@ -26,7 +26,7 @@ void SerialLayer::readData()
     _rawData.append(serial->readAll());
     QList<QByteArray> tempList;
 
-    // uUgly way to do cool things
+    // Ugly way to do cool things
     while (_rawData.size() > 5)
     {
         if (_rawData.at(0) != _head.at(0))
