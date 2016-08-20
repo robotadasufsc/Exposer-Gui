@@ -204,8 +204,22 @@ QByteArray mMainWindow::createCommand(char op, char target, QByteArray data)
 
 void mMainWindow::askForData()
 {
+    /*
+    THIS NEED TO BE MOVED TO A COMMUNICATION CLASS
+    //request_all
     auto msg = createCommand(33, 0, QByteArray());
     ser->pushCommand(msg);
+
+    //read target 0
+    auto msg = createCommand(35, 0, QByteArray());
+    ser->pushCommand(msg);
+
+    //write target 0
+    QByteArray value;
+    value.append((char)1);
+    msg = createCommand(34, 0, value);
+    ser->pushCommand(msg);
+    */
 }
 
 mMainWindow::~mMainWindow()
