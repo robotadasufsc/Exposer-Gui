@@ -8,6 +8,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     updateTimer(new QTimer(this)),
     dataTimer(new QTimer(this)),
+    askForDataTimer(new QTimer(this)),
     ser(new SerialLayer(this)),
     numberofLists(4),
     running(false),
@@ -23,7 +24,10 @@ mMainWindow::mMainWindow(QWidget *parent) :
     updateTimer->setInterval(100);
 
     connect(dataTimer, &QTimer::timeout, this, &mMainWindow::updateData);
-    dataTimer->setInterval(75);
+    dataTimer->setInterval(100);
+
+    connect(askForDataTimer, &QTimer::timeout, this, &mMainWindow::askForData);
+    askForDataTimer->setInterval(100);
 
     ui->serialBox->addItems(ser->serialList());
 
@@ -168,13 +172,40 @@ void mMainWindow::checkStartButton()
         ui->pushButton->setText("Stop");
         updateTimer->start();
         dataTimer->start();
+        askForDataTimer->start();
     }
     else
     {
         ui->pushButton->setText("Continue");
         updateTimer->stop();
         dataTimer->stop();
+        askForDataTimer->stop();
     }
+}
+
+QByteArray mMainWindow::createCommand(char op, char target, QByteArray data)
+{
+    QByteArray msg;
+    msg.append('<');
+    msg.append(op);
+    msg.append(target);
+    msg.append(data.size());
+    if(!data.isEmpty())
+        msg.append(data);
+
+    char crc = msg.at(0) ^ msg.at(0);
+    for(const auto byte: msg)
+        crc ^= byte;
+
+    msg.append(crc);
+
+    return msg;
+}
+
+void mMainWindow::askForData()
+{
+    auto msg = createCommand(33, 0, QByteArray());
+    ser->pushCommand(msg);
 }
 
 mMainWindow::~mMainWindow()

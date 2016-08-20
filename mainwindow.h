@@ -22,6 +22,7 @@ private:
     Ui::MainWindow *ui;
     QTimer *updateTimer;
     QTimer *dataTimer;
+    QTimer *askForDataTimer;
     SerialLayer *ser;
 
     void update();
@@ -33,6 +34,8 @@ private:
     void  addLog(QByteArray msg);
     void checkReceivedCommand();
     void checkPushedCommands(QByteArray bmsg);
+    QByteArray createCommand(char op, char target, QByteArray data);
+    void askForData();
     uint numberofLists;
     uint baudrate;
     bool running;
