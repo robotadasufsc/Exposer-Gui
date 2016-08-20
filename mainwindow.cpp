@@ -8,9 +8,10 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     updateTimer(new QTimer(this)),
     dataTimer(new QTimer(this)),
-    ser(new SerialLayer("/dev/ttyUSB0", 115200)),
+    ser(new SerialLayer(this)),
     numberofLists(4),
-    running(true)
+    running(false),
+    baudrate(115200)
 {
     ui->setupUi(this);
 
@@ -19,10 +20,12 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui->spinBox->setValue(100);
 
     connect(updateTimer, &QTimer::timeout, this, &mMainWindow::update);
-    updateTimer->start(100);
+    updateTimer->setInterval(100);
 
     connect(dataTimer, &QTimer::timeout, this, &mMainWindow::updateData);
-    dataTimer->start(75);
+    dataTimer->setInterval(75);
+
+    ui->serialBox->addItems(ser->serialList());
 
     ui->treeWidget->setHeaderLabel("Plots");
     connect(ui->treeWidget, &QTreeWidget::itemChanged, this, &mMainWindow::checkTree);
@@ -161,6 +164,7 @@ void mMainWindow::checkStartButton()
 
     if(running)
     {
+        ser->open(ui->serialBox->currentText(), baudrate);
         ui->pushButton->setText("Stop");
         updateTimer->start();
         dataTimer->start();

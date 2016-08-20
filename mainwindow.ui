@@ -35,9 +35,16 @@
          <widget class="QSpinBox" name="spinBox"/>
         </item>
         <item>
+         <widget class="QComboBox" name="serialBox">
+          <property name="editable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="pushButton">
           <property name="text">
-           <string>Stop</string>
+           <string>Start</string>
           </property>
          </widget>
         </item>
@@ -85,7 +92,7 @@
      <x>0</x>
      <y>0</y>
      <width>753</width>
-     <height>26</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuPotato">

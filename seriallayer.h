@@ -47,7 +47,7 @@ public:
      * @param baud : Baud rate (115200)
      * @param parent : Parent
      */
-    SerialLayer(QString port, uint baud, QWidget *parent = 0);
+    SerialLayer(QWidget *parent = 0);
     ~SerialLayer();
 
     /**
@@ -84,6 +84,20 @@ public:
      * @return QByteArray
      */
     QByteArray popCommand();
+
+    /**
+     * @brief Open serial port
+     *
+     * @return return good or bad
+     */
+    bool open(QString port, uint baud);
+
+    /**
+     * @brief Return list of serial ports
+     *
+     * @return list
+     */
+    QStringList serialList();
 
     /**
      * @brief Check if port is opened

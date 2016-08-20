@@ -1,20 +1,47 @@
 #include <QDebug>
+#include <QSerialPortInfo>
 
 #include "seriallayer.h"
 
 QByteArray SerialLayer::_head = QByteArray("<");
 
-SerialLayer::SerialLayer(QString port, uint baud, QWidget *parent) :
+SerialLayer::SerialLayer(QWidget *parent):
     serial(new QSerialPort()),
     _serialOpened(false)
 {
+    connect(serial, &QSerialPort::readyRead, this, &SerialLayer::readData);
+};
+
+bool SerialLayer::open(QString port, uint baud)
+{
+    if (_serialOpened)
+        serial->close();
+
     serial->setPortName(port);
     serial->setBaudRate(baud);
     _serialOpened = serial->open(QIODevice::ReadWrite);
     serial->clear();
+    return _serialOpened;
+}
 
-    connect(serial, &QSerialPort::readyRead, this, &SerialLayer::readData);
-};
+QStringList SerialLayer::serialList()
+{
+    QStringList ports;
+    QList<QSerialPortInfo> serialPortInfoList = QSerialPortInfo::availablePorts();
+    if (!serialPortInfoList.isEmpty())
+    {
+        for (const auto &serialPortInfo: serialPortInfoList)
+        {
+            ports.append("/dev/"+serialPortInfo.portName());
+        }
+    }
+    else
+    {
+        return QStringList();
+    }
+
+    return ports;
+}
 
 bool SerialLayer::opened()
 {

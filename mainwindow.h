@@ -34,6 +34,7 @@ private:
     void checkReceivedCommand();
     void checkPushedCommands(QByteArray bmsg);
     uint numberofLists;
+    uint baudrate;
     bool running;
 
     QList<QList<QPointF>> dataList;
