@@ -58,7 +58,6 @@ void SerialLayer::readData()
     {
         if (_rawData.at(0) != _head.at(0))
         {
-            qDebug() << _rawData.at(0);
             _rawData.remove(0, 1);
             continue;
         }

@@ -35,6 +35,7 @@ private:
     void checkReceivedCommand();
     void checkPushedCommands(QByteArray bmsg);
     QByteArray createCommand(char op, char target, QByteArray data);
+    void getComm();
     void askForData();
     uint numberofLists;
     uint baudrate;

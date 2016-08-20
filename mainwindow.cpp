@@ -19,6 +19,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui->spinBox->setMaximum(10000);
     ui->spinBox->setMinimum(10);
     ui->spinBox->setValue(100);
+    ui->comm->setPlaceholderText("Operation Target [Data]: 33 0; 35 0; 34 0 1");
 
     connect(updateTimer, &QTimer::timeout, this, &mMainWindow::update);
     updateTimer->setInterval(100);
@@ -37,6 +38,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
 
     connect(ser, &SerialLayer::receivedCommand, this, &mMainWindow::checkReceivedCommand);
     connect(ser, &SerialLayer::pushedCommand, this, &mMainWindow::checkPushedCommands);
+    connect(ui->comm, &QLineEdit::returnPressed, this, &mMainWindow::getComm);
 }
 
 QString mMainWindow::getTime()
@@ -220,6 +222,23 @@ void mMainWindow::askForData()
     msg = createCommand(34, 0, value);
     ser->pushCommand(msg);
     */
+}
+
+void mMainWindow::getComm()
+{
+    QString command = ui->comm->text();
+    QStringList list = command.split(' ');
+
+    QByteArray msg;
+    for (const auto item: list)
+    {
+        if (item.at(0).isDigit())
+            msg.append((char)item.toInt());
+        else
+            msg.append(item);
+    }
+    auto com = createCommand(msg.at(0), msg.at(1), msg.mid(2));
+    ser->pushCommand(com);
 }
 
 mMainWindow::~mMainWindow()
