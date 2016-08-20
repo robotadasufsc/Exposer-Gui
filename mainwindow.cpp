@@ -40,13 +40,19 @@ QString mMainWindow::getTime()
 void  mMainWindow::addLog(QByteArray msg)
 {
     QString msgHex;
-    msgHex.append("[");
     for(const auto byte: msg)
     {
-        msgHex.append(QString::number(byte, 16));
-        msgHex.append(" ");
+        if(byte > 32 && byte < 127)
+            msgHex.append(byte);
+        else
+        {
+            msgHex.append("\\x");
+            if(byte < 16)
+                msgHex.append("0");
+            msgHex.append(QString::number(byte, 16));
+        }
     }
-    msgHex.append("]");
+
     const QString text = QString("[%1] ").arg(getTime()) + msgHex;
     qDebug() << text;
     ui->console->appendPlainText(text);
