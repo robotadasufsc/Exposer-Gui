@@ -82,7 +82,14 @@
      </layout>
     </item>
     <item>
-     <widget class="QPlainTextEdit" name="console"/>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QPlainTextEdit" name="console"/>
+      </item>
+      <item>
+       <widget class="QTableWidget" name="table"/>
+      </item>
+     </layout>
     </item>
     <item>
      <widget class="QLineEdit" name="comm"/>

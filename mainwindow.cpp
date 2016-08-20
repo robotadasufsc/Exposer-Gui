@@ -21,6 +21,14 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui->spinBox->setValue(100);
     ui->comm->setPlaceholderText("Operation Target [Data]: 33 0; 35 0; 34 0 1");
 
+    ui->table->setRowCount(4);
+    ui->table->setColumnCount(3);
+    QStringList tableHeader;
+    tableHeader << "#" << "Name" << "Value";
+    ui->table->setHorizontalHeaderLabels(tableHeader);
+    ui->table->setStyleSheet("QTableView {selection-background-color: yellow;}");
+    ui->table->horizontalHeader()->setStretchLastSection(true);
+
     connect(updateTimer, &QTimer::timeout, this, &mMainWindow::update);
     updateTimer->setInterval(100);
 
