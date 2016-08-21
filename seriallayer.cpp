@@ -64,10 +64,15 @@ void SerialLayer::readData()
 
         uint size = 0;
         char crcf = 0;
-        char crc = _head.at(0) ^ _rawData.at(1); // header operation
-        crc = crc  ^ _rawData.at(2); // target
-        crc = crc  ^ _rawData.at(3); // payload
-        if (_rawData.at(3) < _rawData.size() - 4) // get rest
+        // header operation
+        char crc = _head.at(0) ^ _rawData.at(1);
+        // target
+        crc = crc  ^ _rawData.at(2);
+        // payload
+        crc = crc  ^ _rawData.at(3);
+
+        // get rest
+        if (_rawData.at(3) < _rawData.size() - 4)
         {
             for (uint i = 3 + 1; i < _rawData.at(3) + 4; i++)
             {
@@ -80,15 +85,23 @@ void SerialLayer::readData()
 
             if (crc == crcf)
             {
-                emit(receivedCommand(_rawData.left(size)));
                 _rByteCommands.append(_rawData.left(size));
+                emit(receivedCommand(_rawData.left(size)));
                 _rawData = _rawData.mid(size+1);
             }
         }
         else
         {
-            qDebug()  << "NO ENOUGH DATA " << _rawData;
-            break;
+            if (serial->bytesAvailable())
+            {
+                // add new data
+                _rawData.append(serial->readAll());
+            }
+            else
+            {
+                qDebug()  << "NO ENOUGH DATA " << _rawData;
+                break;
+            }
         }
     }
 }
