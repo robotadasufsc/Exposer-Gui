@@ -64,9 +64,9 @@ void  mMainWindow::addLog(QByteArray msg)
         else
         {
             msgHex.append("\\x");
-            if(byte < 16)
+            if((uint)byte < 16)
                 msgHex.append("0");
-            msgHex.append(QString::number(byte, 16));
+            msgHex.append(QString::number((byte & 0xFF), 16));
         }
     }
 
