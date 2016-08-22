@@ -19,7 +19,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
     dataTimer(new QTimer(this)),
     askForDataTimer(new QTimer(this)),
     ser(new SerialLayer(this)),
-    numberofLists(4),
+    numberofLists(0),
     running(false),
     baudrate(115200)
 {
@@ -87,17 +87,50 @@ void  mMainWindow::addLog(QByteArray msg)
 QVariant mMainWindow::convert(QByteArray msg, uint type)
 {
     char *data = msg.data();
+    union convStruct
+    {
+        uint8_t uint8;
+        uint16_t uint16;
+        uint32_t uint32;
+        int8_t int8;
+        int16_t int16;
+        int32_t int32;
+        float   float32;
+        unsigned char   c[0];
 
+    };
+
+    convStruct conv;
+
+    for (int i = 0; i < msg.size();i++)
+    {
+        conv.c[i] = data[i];
+    }
     switch(type)
     {
         case UINT8:
-            return (0xFF & data[0]);
+            return conv.uint8;
             break;
 
         case UINT16:
-             qDebug() << (((0x00FF & data[1])<<8) & (0xFF & data[0]));
-            return (uint16_t)((0x00FF & data[0]) & ((0x00FF & data[1])<<8));
+            return conv.uint16;
             break;
+
+        case INT8:
+            return conv.int8;
+            break;
+
+        case INT16:
+            return conv.int16;
+            break;
+
+        case INT32:
+            return conv.int32;
+            break;
+
+        case FLOAT:
+            return conv.float32;
+            break;;
 
         default:
             return 0;
@@ -118,38 +151,46 @@ void mMainWindow::checkReceivedCommand()
         //[id].name = name
         variables[msg.at(2)].name = msg.mid(4, msg.at(3) - 1);
         variables[msg.at(2)].type = msg.at(4 + msg.at(3) - 1);
+        numberofLists = variables.count();
     }
 
     //value
     if (msg.at(1) == 35)
     {
         QVariant value;
+
         QByteArray val;
         switch (variables[msg.at(2)].type)
         {
             //uint8_t
             case UINT8:
                 value = convert(msg.mid(4, 1), UINT8);
-                qDebug() << value << (uint) (msg.at(4) & 0xFF);
                 break;
 
             case UINT16:
                 value = convert(msg.mid(4, 2), UINT16);
-                qDebug() << msg.mid(4, 2);
-                qDebug() << value << convert(msg.mid(4, 2), UINT16);
                 break;
 
             case UINT32:
-                value = msg.mid(4, 4).toUInt();
-                qDebug() << value;
+                value = convert(msg.mid(4, 4), UINT32);
                 break;
 
-            /*
-            case 3:
-                value = (uint8_t)msg.mid(4).at(0);
-                qDebug() << value;
+            case INT8:
+                value = convert(msg.mid(4, 1), INT8);
                 break;
-            */
+
+            case INT16:
+                value = convert(msg.mid(4, 2), INT16);
+                break;
+
+            case INT32:
+                value = convert(msg.mid(4, 4), INT32);
+                break;
+
+            case FLOAT:
+
+                value = convert(msg.mid(4, 4), FLOAT);
+                break;
 
             default:
                 break;
@@ -157,14 +198,6 @@ void mMainWindow::checkReceivedCommand()
         }
         variables[msg.at(2)].value = value;
     }
-
-     for (const auto var: variables)
-    {
-        qDebug() << var.name << var.type << var.value;
-    }
-
-
-    int line = 0;
 
     if (ui->table->rowCount() < variables.size())
     {
@@ -188,7 +221,7 @@ void mMainWindow::checkReceivedCommand()
             }
         }else
         {
-             QTableWidgetItem *newItem = new QTableWidgetItem(QString(var.name));
+            QTableWidgetItem *newItem = new QTableWidgetItem(QString(var.name));
             ui->table->setItem(line, 0, newItem);
         }
 
@@ -201,7 +234,7 @@ void mMainWindow::checkReceivedCommand()
             }
         }else
         {
-             QTableWidgetItem *newItem = new QTableWidgetItem(var.value.toString());
+            QTableWidgetItem *newItem = new QTableWidgetItem(var.value.toString());
             ui->table->setItem(line, 1, newItem);
         }
 
@@ -216,7 +249,7 @@ void mMainWindow::checkReceivedCommand()
             }
         }else
         {
-             QTableWidgetItem *newItem = new QTableWidgetItem(var.value.toString());
+            QTableWidgetItem *newItem = new QTableWidgetItem(var.value.toString());
             ui->table->setItem(line, 2, newItem);
         }
     }
@@ -235,7 +268,7 @@ void mMainWindow::updateData()
     {
         for(uint i = dataList.count(); i < numberofLists; i++)
         {
-            dataInfo[i] = QString("line " + QString::number(i));
+            dataInfo[i] = variables[i].name;
             QList<QPointF> point;
             point.append(QPointF(0, 0));
             dataList.append(point);
@@ -245,7 +278,7 @@ void mMainWindow::updateData()
 
     for(uint i = 0 ; i < numberofLists; i++)
     {
-        dataList[i].append(QPointF(dataList[i].last().rx()+1, rand()%255));
+        dataList[i].append(QPointF(dataList[i].last().rx()+1, variables[i].value.toFloat()));
     }
 }
 
