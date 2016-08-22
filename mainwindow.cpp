@@ -3,6 +3,15 @@
 #include "seriallayer.h"
 #include "ui_mainwindow.h"
 
+struct Variable
+{
+    uint type;
+    QString name;
+    QVariant value;
+};
+
+QMap<int, Variable> variables;
+
 mMainWindow::mMainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -10,7 +19,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
     dataTimer(new QTimer(this)),
     askForDataTimer(new QTimer(this)),
     ser(new SerialLayer(this)),
-    numberofLists(4),
+    numberofLists(0),
     running(false),
     baudrate(115200)
 {
@@ -24,7 +33,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui->table->setRowCount(4);
     ui->table->setColumnCount(3);
     QStringList tableHeader;
-    tableHeader << "#" << "Name" << "Value";
+    tableHeader <<"Name" << "Type" << "Value";
     ui->table->setHorizontalHeaderLabels(tableHeader);
     ui->table->setStyleSheet("QTableView {selection-background-color: yellow;}");
     ui->table->horizontalHeader()->setStretchLastSection(true);
@@ -75,10 +84,176 @@ void  mMainWindow::addLog(QByteArray msg)
     ui->console->appendPlainText(text);
 }
 
+QVariant mMainWindow::convert(QByteArray msg, uint type)
+{
+    char *data = msg.data();
+    union convStruct
+    {
+        uint8_t uint8;
+        uint16_t uint16;
+        uint32_t uint32;
+        int8_t int8;
+        int16_t int16;
+        int32_t int32;
+        float   float32;
+        unsigned char   c[0];
+
+    };
+
+    convStruct conv;
+
+    for (int i = 0; i < msg.size();i++)
+    {
+        conv.c[i] = data[i];
+    }
+    switch(type)
+    {
+        case UINT8:
+            return conv.uint8;
+            break;
+
+        case UINT16:
+            return conv.uint16;
+            break;
+
+        case INT8:
+            return conv.int8;
+            break;
+
+        case INT16:
+            return conv.int16;
+            break;
+
+        case INT32:
+            return conv.int32;
+            break;
+
+        case FLOAT:
+            return conv.float32;
+            break;;
+
+        default:
+            return 0;
+            break;
+    }
+}
+
 void mMainWindow::checkReceivedCommand()
 {
-    if(ser->commandAvailable())
-        addLog(ser->popCommand());
+    if(!ser->commandAvailable())
+        return;
+    QByteArray msg = ser->popCommand();
+    addLog(msg);
+
+    //request all
+    if (msg.at(1) == 33)
+    {
+        //[id].name = name
+        variables[msg.at(2)].name = msg.mid(4, msg.at(3) - 1);
+        variables[msg.at(2)].type = msg.at(4 + msg.at(3) - 1);
+        numberofLists = variables.count();
+    }
+
+    //value
+    if (msg.at(1) == 35)
+    {
+        QVariant value;
+
+        QByteArray val;
+        switch (variables[msg.at(2)].type)
+        {
+            //uint8_t
+            case UINT8:
+                value = convert(msg.mid(4, 1), UINT8);
+                break;
+
+            case UINT16:
+                value = convert(msg.mid(4, 2), UINT16);
+                break;
+
+            case UINT32:
+                value = convert(msg.mid(4, 4), UINT32);
+                break;
+
+            case INT8:
+                value = convert(msg.mid(4, 1), INT8);
+                break;
+
+            case INT16:
+                value = convert(msg.mid(4, 2), INT16);
+                break;
+
+            case INT32:
+                value = convert(msg.mid(4, 4), INT32);
+                break;
+
+            case FLOAT:
+
+                value = convert(msg.mid(4, 4), FLOAT);
+                break;
+
+            default:
+                break;
+
+        }
+        variables[msg.at(2)].value = value;
+    }
+
+    if (ui->table->rowCount() < variables.size())
+    {
+        ui->table->setRowCount(variables.size());
+    }
+
+    // should be moved somewhere else! updateTable(), perhaps?
+
+    QMapIterator<int,Variable> i(variables);
+    while (i.hasNext()) {
+        i.next();
+        auto var = i.value();
+        int line = i.key();
+
+        QTableWidgetItem* item = ui->table->item(line, 0);
+        if (item != nullptr)
+        {
+            if (item->text() != var.name)
+            {
+                item->setText(var.name);
+            }
+        }else
+        {
+            QTableWidgetItem *newItem = new QTableWidgetItem(QString(var.name));
+            ui->table->setItem(line, 0, newItem);
+        }
+
+        QTableWidgetItem* itemType = ui->table->item(line, 1);
+        if (itemType != nullptr)
+        {
+            if (itemType->text() != typeNames[var.type])
+            {
+                itemType->setText(typeNames[var.type]);
+            }
+        }else
+        {
+            QTableWidgetItem *newItem = new QTableWidgetItem(var.value.toString());
+            ui->table->setItem(line, 1, newItem);
+        }
+
+
+
+        QTableWidgetItem* itemValue = ui->table->item(line, 2);
+        if (itemValue != nullptr)
+        {
+            if (itemValue->text() != var.value.toString())
+            {
+                itemValue->setText(var.value.toString());
+            }
+        }else
+        {
+            QTableWidgetItem *newItem = new QTableWidgetItem(var.value.toString());
+            ui->table->setItem(line, 2, newItem);
+        }
+    }
+
 }
 
 void mMainWindow::checkPushedCommands(QByteArray bmsg)
@@ -93,7 +268,7 @@ void mMainWindow::updateData()
     {
         for(uint i = dataList.count(); i < numberofLists; i++)
         {
-            dataInfo[i] = QString("line " + QString::number(i));
+            dataInfo[i] = variables[i].name;
             QList<QPointF> point;
             point.append(QPointF(0, 0));
             dataList.append(point);
@@ -103,7 +278,7 @@ void mMainWindow::updateData()
 
     for(uint i = 0 ; i < numberofLists; i++)
     {
-        dataList[i].append(QPointF(dataList[i].last().rx()+1, rand()%255));
+        dataList[i].append(QPointF(dataList[i].last().rx()+1, variables[i].value.toFloat()));
     }
 }
 
@@ -214,17 +389,21 @@ QByteArray mMainWindow::createCommand(char op, char target, QByteArray data)
 
 void mMainWindow::askForData()
 {
-    /*
-    THIS NEED TO BE MOVED TO A COMMUNICATION CLASS
-    //request_all
-    auto msg = createCommand(33, 0, QByteArray());
-    ser->pushCommand(msg);
 
-    //read target 0
-    auto msg = createCommand(35, 0, QByteArray());
-    ser->pushCommand(msg);
-
-    //write target 0
+    if (variables.count() > 0)
+    {
+        for ( int i = 0; i < variables.count(); i++)
+        {
+            auto msg = createCommand(35, i, QByteArray());
+            ser->pushCommand(msg);
+        }
+    }
+    else
+    {
+        auto msg = createCommand(33, 0, QByteArray());
+        ser->pushCommand(msg);
+    }
+/*  //write target 0
     QByteArray value;
     value.append((char)1);
     msg = createCommand(34, 0, value);

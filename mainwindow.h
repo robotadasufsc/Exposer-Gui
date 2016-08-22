@@ -25,6 +25,9 @@ private:
     QTimer *askForDataTimer;
     SerialLayer *ser;
 
+    enum {UINT8, UINT16, UINT32, INT8, INT16, INT32, FLOAT};
+    const QStringList typeNames = (QStringList() << "uint8" << "uint16" << "uint32" << "int8" << "int16" << "int32" << "float");
+
     void update();
     void updateData();
     void updateTree();
@@ -32,6 +35,7 @@ private:
     void checkStartButton();
     QString getTime();
     void  addLog(QByteArray msg);
+    QVariant convert(QByteArray data, uint type);
     void checkReceivedCommand();
     void checkPushedCommands(QByteArray bmsg);
     QByteArray createCommand(char op, char target, QByteArray data);
