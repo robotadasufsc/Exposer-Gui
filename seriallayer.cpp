@@ -74,7 +74,7 @@ void SerialLayer::readData()
         // get rest
         if (_rawData.at(3) < _rawData.size() - 4)
         {
-            for (uint i = 3 + 1; i < _rawData.at(3) + 4; i++)
+            for (int i = 3 + 1; i < _rawData.at(3) + 4; i++)
             {
                 crc = crc ^ _rawData.at(i);
                 size = i+1;

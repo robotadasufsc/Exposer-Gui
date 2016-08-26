@@ -19,9 +19,9 @@ mMainWindow::mMainWindow(QWidget *parent) :
     dataTimer(new QTimer(this)),
     askForDataTimer(new QTimer(this)),
     ser(new SerialLayer(this)),
-    numberofLists(0),
-    running(false),
-    baudrate(115200)
+    numberOfLists(0),
+    baudrate(115200),
+    running(false)
 {
     ui->setupUi(this);
 
@@ -230,7 +230,7 @@ void mMainWindow::checkReceivedCommand()
         //[id].name = name
         variables[msg.at(2)].name = msg.mid(4, msg.at(3) - 1);
         variables[msg.at(2)].type = msg.at(4 + msg.at(3) - 1);
-        numberofLists = variables.count();
+        numberOfLists = variables.count();
     }
 
     //value
@@ -342,9 +342,9 @@ void mMainWindow::checkPushedCommands(QByteArray bmsg)
 void mMainWindow::updateData()
 {
     //update with fake data
-    if(dataList.count() < numberofLists)
+    if(dataList.count() < numberOfLists)
     {
-        for(uint i = dataList.count(); i < numberofLists; i++)
+        for(int i = dataList.count(); i < numberOfLists; i++)
         {
             dataInfo[i] = variables[i].name;
             QList<QPointF> point;
@@ -354,7 +354,7 @@ void mMainWindow::updateData()
         updateTree();
     }
 
-    for(uint i = 0 ; i < numberofLists; i++)
+    for(int i = 0 ; i < numberOfLists; i++)
     {
         dataList[i].append(QPointF(dataList[i].last().rx()+1, variables[i].value.toFloat()));
     }
@@ -365,7 +365,7 @@ void mMainWindow::update()
     QChart* c = new QChart();
     c->setTitle("Graph");
 
-    uint lineNuber = 0;
+    int lineNuber = 0;
     for(const auto list: dataList)
     {
         QLineSeries* line1 = new QLineSeries();
@@ -401,7 +401,7 @@ void mMainWindow::update()
 void mMainWindow::updateTree()
 {
     Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
-    for(uint i = ui->treeWidget->columnCount()-1; i < dataInfo.count(); i++)
+    for(int i = ui->treeWidget->columnCount()-1; i < dataInfo.count(); i++)
     {
         QTreeWidgetItem * item = new QTreeWidgetItem();
         item->setFlags(flags);

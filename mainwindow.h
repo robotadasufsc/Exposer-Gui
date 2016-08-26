@@ -42,7 +42,7 @@ private:
     QByteArray createCommand(char op, char target, QByteArray data);
     void getComm();
     void askForData();
-    uint numberofLists;
+    int numberOfLists;
     uint baudrate;
     bool running;
 
