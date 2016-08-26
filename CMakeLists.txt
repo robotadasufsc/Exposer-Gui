@@ -6,6 +6,8 @@ FIND_PACKAGE(Qt5 COMPONENTS Gui Widgets Charts SerialPort)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+add_definitions ("-Wall -Wunused")
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
