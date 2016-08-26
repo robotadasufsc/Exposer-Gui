@@ -81,7 +81,7 @@ void SerialLayer::readData()
             }
             crcf = _rawData.at(size);
 
-            qDebug() << "OK ?" << (crc == crcf) << _rawData.left(size);
+            //qDebug() << "OK ?" << (crc == crcf) << _rawData.left(size);
 
             if (crc == crcf)
             {
@@ -99,7 +99,7 @@ void SerialLayer::readData()
             }
             else
             {
-                qDebug()  << "NO ENOUGH DATA " << _rawData;
+                //qDebug()  << "NO ENOUGH DATA " << _rawData;
                 break;
             }
         }
