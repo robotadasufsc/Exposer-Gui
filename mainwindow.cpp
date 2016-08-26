@@ -80,7 +80,6 @@ void  mMainWindow::addLog(QByteArray msg)
     }
 
     const QString text = QString("[%1] ").arg(getTime()) + msgHex;
-    qDebug() << text;
     ui->console->appendPlainText(text);
 }
 
@@ -97,7 +96,6 @@ QVariant mMainWindow::convert(QByteArray msg, uint type)
         int32_t int32;
         float   float32;
         unsigned char   c[0];
-
     };
 
     convStruct conv;
@@ -239,7 +237,6 @@ void mMainWindow::checkReceivedCommand()
         }
 
 
-
         QTableWidgetItem* itemValue = ui->table->item(line, 2);
         if (itemValue != nullptr)
         {
@@ -258,7 +255,7 @@ void mMainWindow::checkReceivedCommand()
 
 void mMainWindow::checkPushedCommands(QByteArray bmsg)
 {
-    qDebug() << bmsg;
+    //qDebug() << bmsg;
 }
 
 void mMainWindow::updateData()
@@ -403,12 +400,6 @@ void mMainWindow::askForData()
         auto msg = createCommand(33, 0, QByteArray());
         ser->pushCommand(msg);
     }
-/*  //write target 0
-    QByteArray value;
-    value.append((char)1);
-    msg = createCommand(34, 0, value);
-    ser->pushCommand(msg);
-    */
 }
 
 void mMainWindow::getComm()
