@@ -31,9 +31,9 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui->comm->setPlaceholderText("Operation Target [Data]: 33 0; 35 0; 34 0 1");
 
     ui->table->setRowCount(4);
-    ui->table->setColumnCount(3);
+    ui->table->setColumnCount(4);
     QStringList tableHeader;
-    tableHeader <<"Name" << "Type" << "Value";
+    tableHeader <<"Name" << "Type" << "Value" << "Enter";
     ui->table->setHorizontalHeaderLabels(tableHeader);
     ui->table->setStyleSheet("QTableView {selection-background-color: gray;}");
     ui->table->horizontalHeader()->setStretchLastSection(true);
@@ -52,6 +52,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui->treeWidget->setHeaderLabel("Plots");
     connect(ui->treeWidget, &QTreeWidget::itemChanged, this, &mMainWindow::checkTree);
     connect(ui->pushButton, &QPushButton::clicked, this, &mMainWindow::checkStartButton);
+    connect(ui->table, &QTableWidget::cellChanged, this, &mMainWindow::cellChanged);
 
     connect(ser, &SerialLayer::receivedCommand, this, &mMainWindow::checkReceivedCommand);
     connect(ser, &SerialLayer::pushedCommand, this, &mMainWindow::checkPushedCommands);
@@ -138,6 +139,82 @@ QVariant mMainWindow::convert(QByteArray msg, uint type)
             return 0;
             break;
     }
+}
+
+void mMainWindow::cellChanged(int row, int col)
+{
+    if(col != 3)
+        return;
+
+    float value = (ui->table->item(row, col)->text()).toFloat();
+    QByteArray array;
+
+    //http://stackoverflow.com/questions/2773977/convert-from-float-to-qbytearray
+    switch (variables[row].type)
+    {
+        case UINT8:
+        {
+            uint8_t convValue = (uint8_t) value;
+            QByteArray tempArray(reinterpret_cast<const char*>(&convValue), sizeof(convValue));
+            array = tempArray;
+        }
+        break;
+
+        case UINT16:
+        {
+            uint16_t convValue = (uint16_t) value;
+            QByteArray tempArray(reinterpret_cast<const char*>(&convValue), sizeof(convValue));
+            array = tempArray;
+        }
+        break;
+
+        case UINT32:
+        {
+            uint32_t convValue = (uint32_t) value;
+            QByteArray tempArray(reinterpret_cast<const char*>(&convValue), sizeof(convValue));
+            array = tempArray;
+        }
+        break;
+
+        case INT8:
+        {
+            int8_t convValue = (int8_t) value;
+            QByteArray tempArray(reinterpret_cast<const char*>(&convValue), sizeof(convValue));
+            array = tempArray;
+        }
+        break;
+
+        case INT16:
+        {
+            int16_t convValue = (int16_t) value;
+            QByteArray tempArray(reinterpret_cast<const char*>(&convValue), sizeof(convValue));
+            array = tempArray;
+        }
+        break;
+
+        case INT32:
+        {
+            int32_t convValue = (int32_t) value;
+            QByteArray tempArray(reinterpret_cast<const char*>(&convValue), sizeof(convValue));
+            array = tempArray;
+        }
+        break;
+
+        case FLOAT:
+        {
+            QByteArray tempArray(reinterpret_cast<const char*>(&value), sizeof(value));
+            array = tempArray;
+        }
+        default:
+            break;
+
+    }
+
+    //write target
+    QByteArray msg;
+    msg = createCommand(34, row, array);
+    ser->pushCommand(msg);
+    qDebug() << msg;
 }
 
 void mMainWindow::checkReceivedCommand()
