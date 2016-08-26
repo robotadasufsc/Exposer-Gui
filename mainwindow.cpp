@@ -35,7 +35,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
     QStringList tableHeader;
     tableHeader <<"Name" << "Type" << "Value";
     ui->table->setHorizontalHeaderLabels(tableHeader);
-    ui->table->setStyleSheet("QTableView {selection-background-color: yellow;}");
+    ui->table->setStyleSheet("QTableView {selection-background-color: gray;}");
     ui->table->horizontalHeader()->setStretchLastSection(true);
 
     connect(updateTimer, &QTimer::timeout, this, &mMainWindow::update);
