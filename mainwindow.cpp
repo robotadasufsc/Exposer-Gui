@@ -114,6 +114,10 @@ QVariant mMainWindow::convert(QByteArray msg, uint type)
             return conv.uint16;
             break;
 
+        case UINT32:
+            return conv.uint32;
+            break;
+
         case INT8:
             return conv.int8;
             break;
