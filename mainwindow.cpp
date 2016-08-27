@@ -67,14 +67,14 @@ QString mMainWindow::getTime()
 void  mMainWindow::addLog(QByteArray msg)
 {
     QString msgHex;
-    for(const auto byte: msg)
+    for (const auto byte: msg)
     {
-        if(byte > 32 && byte < 127)
+        if (byte > 32 && byte < 127)
             msgHex.append(byte);
         else
         {
             msgHex.append("\\x");
-            if((uint)byte < 16)
+            if ((uint)byte < 16)
                 msgHex.append("0");
             msgHex.append(QString::number((byte & 0xFF), 16));
         }
@@ -95,17 +95,17 @@ QVariant mMainWindow::convert(QByteArray msg, uint type)
         int8_t int8;
         int16_t int16;
         int32_t int32;
-        float   float32;
-        unsigned char   c[0];
+        float float32;
+        unsigned char c[0];
     };
 
     convStruct conv;
 
-    for (int i = 0; i < msg.size();i++)
+    for (int i = 0; i < msg.size(); i++)
     {
         conv.c[i] = data[i];
     }
-    switch(type)
+    switch (type)
     {
         case UINT8:
             return conv.uint8;
@@ -143,7 +143,7 @@ QVariant mMainWindow::convert(QByteArray msg, uint type)
 
 void mMainWindow::cellChanged(int row, int col)
 {
-    if(col != 3)
+    if (col != 3)
         return;
 
     float value = (ui->table->item(row, col)->text()).toFloat();
@@ -219,7 +219,7 @@ void mMainWindow::cellChanged(int row, int col)
 
 void mMainWindow::checkReceivedCommand()
 {
-    if(!ser->commandAvailable())
+    if (!ser->commandAvailable())
         return;
     QByteArray msg = ser->popCommand();
     addLog(msg);
@@ -267,7 +267,6 @@ void mMainWindow::checkReceivedCommand()
                 break;
 
             case FLOAT:
-
                 value = convert(msg.mid(4, 4), FLOAT);
                 break;
 
@@ -285,8 +284,9 @@ void mMainWindow::checkReceivedCommand()
 
     // should be moved somewhere else! updateTable(), perhaps?
 
-    QMapIterator<int,Variable> i(variables);
-    while (i.hasNext()) {
+    QMapIterator<int, Variable> i(variables);
+    while (i.hasNext())
+    {
         i.next();
         auto var = i.value();
         int line = i.key();
@@ -298,7 +298,8 @@ void mMainWindow::checkReceivedCommand()
             {
                 item->setText(var.name);
             }
-        }else
+        }
+        else
         {
             QTableWidgetItem *newItem = new QTableWidgetItem(QString(var.name));
             ui->table->setItem(line, 0, newItem);
@@ -311,7 +312,8 @@ void mMainWindow::checkReceivedCommand()
             {
                 itemType->setText(typeNames[var.type]);
             }
-        }else
+        }
+        else
         {
             QTableWidgetItem *newItem = new QTableWidgetItem(var.value.toString());
             ui->table->setItem(line, 1, newItem);
@@ -325,7 +327,8 @@ void mMainWindow::checkReceivedCommand()
             {
                 itemValue->setText(var.value.toString());
             }
-        }else
+        }
+        else
         {
             QTableWidgetItem *newItem = new QTableWidgetItem(var.value.toString());
             ui->table->setItem(line, 2, newItem);
@@ -342,9 +345,9 @@ void mMainWindow::checkPushedCommands(QByteArray bmsg)
 void mMainWindow::updateData()
 {
     //update with fake data
-    if(dataList.count() < numberOfLists)
+    if (dataList.count() < numberOfLists)
     {
-        for(int i = dataList.count(); i < numberOfLists; i++)
+        for (int i = dataList.count(); i < numberOfLists; i++)
         {
             dataInfo[i] = variables[i].name;
             QList<QPointF> point;
@@ -354,9 +357,9 @@ void mMainWindow::updateData()
         updateTree();
     }
 
-    for(int i = 0 ; i < numberOfLists; i++)
+    for (int i = 0 ; i < numberOfLists; i++)
     {
-        dataList[i].append(QPointF(dataList[i].last().rx()+1, variables[i].value.toFloat()));
+        dataList[i].append(QPointF(dataList[i].last().rx() + 1, variables[i].value.toFloat()));
     }
 }
 
@@ -366,25 +369,25 @@ void mMainWindow::update()
     c->setTitle("Graph");
 
     int lineNuber = 0;
-    for(const auto list: dataList)
+    for (const auto list: dataList)
     {
         QLineSeries* line1 = new QLineSeries();
         line1->setName(dataInfo[lineNuber]);
-        if(ui->widget->chart()->series().size() > lineNuber)
+        if (ui->widget->chart()->series().size() > lineNuber)
         {
-            if(list.count() < ui->spinBox->value())
+            if (list.count() < ui->spinBox->value())
                 line1->append(list);
             else
                 line1->append(list.mid(list.count()-ui->spinBox->value()));
 
-            if(!ui->widget->chart()->series()[lineNuber]->isVisible())
+            if (!ui->widget->chart()->series()[lineNuber]->isVisible())
                 line1->hide();
 
             c->addSeries(line1);
         }
         else
         {
-            if(list.count() < ui->spinBox->value())
+            if (list.count() < ui->spinBox->value())
                 line1->append(list);
             else
                 line1->append(list.mid(list.count()-ui->spinBox->value()));
@@ -401,7 +404,7 @@ void mMainWindow::update()
 void mMainWindow::updateTree()
 {
     Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
-    for(int i = ui->treeWidget->columnCount()-1; i < dataInfo.count(); i++)
+    for (int i = ui->treeWidget->columnCount()-1; i < dataInfo.count(); i++)
     {
         QTreeWidgetItem * item = new QTreeWidgetItem();
         item->setFlags(flags);
@@ -413,15 +416,15 @@ void mMainWindow::updateTree()
 
 void mMainWindow::checkTree(QTreeWidgetItem *item, int column)
 {
-    if(running)
+    if (running)
         updateTimer->stop();
     const uint id = ui->treeWidget->indexOfTopLevelItem(item);
     dataInfo[id] = item->text(0);
-    if(item->checkState(0))
+    if (item->checkState(0))
         ui->widget->chart()->series()[id]->show();
     else
         ui->widget->chart()->series()[id]->hide();
-    if(running)
+    if (running)
         updateTimer->start();
 }
 
@@ -429,7 +432,7 @@ void mMainWindow::checkStartButton()
 {
     running = !running;
 
-    if(running)
+    if (running)
     {
         ser->open(ui->serialBox->currentText(), baudrate);
         ui->pushButton->setText("Stop");
@@ -453,11 +456,11 @@ QByteArray mMainWindow::createCommand(char op, char target, QByteArray data)
     msg.append(op);
     msg.append(target);
     msg.append(data.size());
-    if(!data.isEmpty())
+    if (!data.isEmpty())
         msg.append(data);
 
     char crc = msg.at(0) ^ msg.at(0);
-    for(const auto byte: msg)
+    for (const auto byte: msg)
         crc ^= byte;
 
     msg.append(crc);
@@ -470,7 +473,7 @@ void mMainWindow::askForData()
 
     if (variables.count() > 0)
     {
-        for ( int i = 0; i < variables.count(); i++)
+        for (int i = 0; i < variables.count(); i++)
         {
             auto msg = createCommand(35, i, QByteArray());
             ser->pushCommand(msg);
