@@ -27,6 +27,7 @@ private:
     SerialLayer *ser;
 
     enum {UINT8, UINT16, UINT32, INT8, INT16, INT32, FLOAT};
+    enum {REQUEST_ALL = 33, WRITE, READ};
     const QStringList typeNames = (QStringList() << "uint8" << "uint16" << "uint32" << "int8" << "int16" << "int32" << "float");
 
     void update();

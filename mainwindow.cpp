@@ -212,7 +212,7 @@ void mMainWindow::cellChanged(int row, int col)
 
     //write target
     QByteArray msg;
-    msg = createCommand(34, row, array);
+    msg = createCommand(WRITE, row, array);
     ser->pushCommand(msg);
     qDebug() << msg;
 }
@@ -225,7 +225,7 @@ void mMainWindow::checkReceivedCommand()
     addLog(msg);
 
     //request all
-    if (msg.at(1) == 33)
+    if (msg.at(1) == REQUEST_ALL)
     {
         //[id].name = name
         variables[msg.at(2)].name = msg.mid(4, msg.at(3) - 1);
@@ -234,7 +234,7 @@ void mMainWindow::checkReceivedCommand()
     }
 
     //value
-    if (msg.at(1) == 35)
+    if (msg.at(1) == READ)
     {
         QVariant value;
 
@@ -475,13 +475,13 @@ void mMainWindow::askForData()
     {
         for (int i = 0; i < variables.count(); i++)
         {
-            auto msg = createCommand(35, i, QByteArray());
+            auto msg = createCommand(READ, i, QByteArray());
             ser->pushCommand(msg);
         }
     }
     else
     {
-        auto msg = createCommand(33, 0, QByteArray());
+        auto msg = createCommand(REQUEST_ALL, 0, QByteArray());
         ser->pushCommand(msg);
     }
 }
