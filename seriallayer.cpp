@@ -32,7 +32,7 @@ QStringList SerialLayer::serialList()
     {
         for (const auto &serialPortInfo: serialPortInfoList)
         {
-            ports.append("/dev/"+serialPortInfo.portName());
+            ports.append("/dev/" + serialPortInfo.portName());
         }
     }
     else
@@ -77,7 +77,7 @@ void SerialLayer::readData()
             for (int i = 3 + 1; i < _rawData.at(3) + 4; i++)
             {
                 crc = crc ^ _rawData.at(i);
-                size = i+1;
+                size = i + 1;
             }
             crcf = _rawData.at(size);
 
@@ -87,7 +87,7 @@ void SerialLayer::readData()
             {
                 _rByteCommands.append(_rawData.left(size));
                 emit(receivedCommand(_rawData.left(size)));
-                _rawData = _rawData.mid(size+1);
+                _rawData = _rawData.mid(size + 1);
             }
         }
         else
@@ -119,7 +119,7 @@ void SerialLayer::addCommand(QByteArray comm)
 
 void SerialLayer::push()
 {
-    foreach(const auto& comm, _sByteCommands)
+    foreach (const auto& comm, _sByteCommands)
     {
         serial->write(comm);
         emit(pushedCommand(comm));
@@ -145,7 +145,7 @@ SerialLayer::~SerialLayer()
 }
 void SerialLayer::closeConnection()
 {
-    if(_serialOpened)
+    if (_serialOpened)
     {
         serial->close();
     }

@@ -6,7 +6,7 @@
 
 class  SerialLayer : public QObject
 {
-Q_OBJECT
+    Q_OBJECT
 
 private:
     QSerialPort *serial;
