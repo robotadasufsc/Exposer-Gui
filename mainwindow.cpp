@@ -84,63 +84,6 @@ void  mMainWindow::addLog(QByteArray msg)
     ui->console->appendPlainText(text);
 }
 
-QVariant mMainWindow::convert(QByteArray msg, uint type)
-{
-    char *data = msg.data();
-    union convStruct
-    {
-        uint8_t uint8;
-        uint16_t uint16;
-        uint32_t uint32;
-        int8_t int8;
-        int16_t int16;
-        int32_t int32;
-        float float32;
-        unsigned char c[0];
-    };
-
-    convStruct conv;
-
-    for (int i = 0; i < msg.size(); i++)
-    {
-        conv.c[i] = data[i];
-    }
-    switch (type)
-    {
-        case UINT8:
-            return conv.uint8;
-            break;
-
-        case UINT16:
-            return conv.uint16;
-            break;
-
-        case UINT32:
-            return conv.uint32;
-            break;
-
-        case INT8:
-            return conv.int8;
-            break;
-
-        case INT16:
-            return conv.int16;
-            break;
-
-        case INT32:
-            return conv.int32;
-            break;
-
-        case FLOAT:
-            return conv.float32;
-            break;;
-
-        default:
-            return 0;
-            break;
-    }
-}
-
 void mMainWindow::cellChanged(int row, int col)
 {
     if (col != 3)
@@ -237,40 +180,49 @@ void mMainWindow::checkReceivedCommand()
     if (msg.at(1) == READ)
     {
         QVariant value;
+        convStruct conv;
+        uint8_t type;
 
-        QByteArray val;
-        switch (variables[msg.at(2)].type)
+        type = variables[msg.at(2)].type;
+        char * data = msg.mid(4, m_sizes[type]).data();
+
+        for (int i = 0; i < msg.size(); i++)
         {
-            //uint8_t
+            conv.c[i] = data[i];
+        }
+
+        switch (type)
+        {
             case UINT8:
-                value = convert(msg.mid(4, 1), UINT8);
+                value = conv.uint8;
                 break;
 
             case UINT16:
-                value = convert(msg.mid(4, 2), UINT16);
+                value = conv.uint16;
                 break;
 
             case UINT32:
-                value = convert(msg.mid(4, 4), UINT32);
+                value = conv.uint32;
                 break;
 
             case INT8:
-                value = convert(msg.mid(4, 1), INT8);
+                value = conv.int8;
                 break;
 
             case INT16:
-                value = convert(msg.mid(4, 2), INT16);
+                value = conv.int16;
                 break;
 
             case INT32:
-                value = convert(msg.mid(4, 4), INT32);
+                value = conv.int32;
                 break;
 
             case FLOAT:
-                value = convert(msg.mid(4, 4), FLOAT);
+                value = conv.float32;
                 break;
 
             default:
+                value = 0;
                 break;
 
         }
