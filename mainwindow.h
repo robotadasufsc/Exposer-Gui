@@ -25,8 +25,21 @@ private:
     QTimer *dataTimer;
     QTimer *askForDataTimer;
     SerialLayer *ser;
+    union convStruct
+    {
+        uint8_t uint8;
+        uint16_t uint16;
+        uint32_t uint32;
+        int8_t int8;
+        int16_t int16;
+        int32_t int32;
+        float float32;
+        unsigned char c[0];
+    };
 
     enum {UINT8, UINT16, UINT32, INT8, INT16, INT32, FLOAT};
+    uint8_t m_sizes[7] = {1, 2, 4, 1, 2, 4, 4};
+
     enum {REQUEST_ALL = 33, WRITE, READ};
     const QStringList typeNames = (QStringList() << "uint8" << "uint16" << "uint32" << "int8" << "int16" << "int32" << "float");
 
@@ -37,7 +50,6 @@ private:
     void checkStartButton();
     QString getTime();
     void  addLog(QByteArray msg);
-    QVariant convert(QByteArray data, uint type);
     void cellChanged(int row, int col);
     void checkReceivedCommand();
     void checkPushedCommands(QByteArray bmsg);
