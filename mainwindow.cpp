@@ -321,21 +321,21 @@ void mMainWindow::update()
     c->setTitle("Graph");
 
     int lineNuber = 0;
+    auto seriesList = ui->widget->chart()->series();
     for (const auto list: dataList)
     {
-        QLineSeries* line1 = new QLineSeries();
+        QXYSeries* line1 = new QLineSeries();
+
         line1->setName(dataInfo[lineNuber]);
-        if (ui->widget->chart()->series().size() > lineNuber)
+        if (seriesList.size() > lineNuber)
         {
             if (list.count() < ui->spinBox->value())
                 line1->append(list);
             else
                 line1->append(list.mid(list.count()-ui->spinBox->value()));
 
-            if (!ui->widget->chart()->series()[lineNuber]->isVisible())
+            if (!seriesList[lineNuber]->isVisible())
                 line1->hide();
-
-            c->addSeries(line1);
         }
         else
         {
@@ -343,13 +343,18 @@ void mMainWindow::update()
                 line1->append(list);
             else
                 line1->append(list.mid(list.count()-ui->spinBox->value()));
-            c->addSeries(line1);
         }
+
         lineNuber++;
+        c->addSeries(line1);
     }
+
     c->createDefaultAxes();
+    c->setTheme(QChart::ChartThemeDark);
+    //To avoid memory leaks need to make sure the previous chart is deleted.
+    QChart* willBeDeleted = ui->widget->chart();;
     ui->widget->setChart(c);
-    ui->widget->chart()->setTheme(QChart::ChartThemeDark);
+    delete willBeDeleted;
     ui->widget->setRenderHint(QPainter::Antialiasing);
 }
 
