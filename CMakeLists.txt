@@ -12,13 +12,13 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 set(EXPOSERGUI_PART_UI
-    mainwindow.ui
+    src/mainwindow.ui
 )
 
 set(EXPOSERGUI_PART_SRCS
-    main.cpp
-    mainwindow.cpp
-    seriallayer.cpp
+    src/main.cpp
+    src/mainwindow.cpp
+    src/seriallayer.cpp
 )
 qt5_wrap_ui(EXPOSERGUI_PART_SRCS ${EXPOSERGUI_PART_UI})
 ADD_EXECUTABLE(exposer-gui ${EXPOSERGUI_PART_SRCS})
