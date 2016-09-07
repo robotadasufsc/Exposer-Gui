@@ -157,7 +157,6 @@ void mMainWindow::cellChanged(int row, int col)
     QByteArray msg;
     msg = createCommand(WRITE, row, array);
     ser->pushCommand(msg);
-    qDebug() << msg;
 }
 
 void mMainWindow::checkReceivedCommand()
