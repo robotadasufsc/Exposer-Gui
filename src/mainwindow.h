@@ -37,11 +37,11 @@ private:
         char c[0];
     };
 
-    enum {UINT8, UINT16, UINT32, INT8, INT16, INT32, FLOAT};
-    uint8_t m_sizes[7] = {1, 2, 4, 1, 2, 4, 4};
+    enum {UINT8, UINT16, UINT32, INT8, INT16, INT32, FLOAT, STRING};
+    uint8_t m_sizes[8] = {1, 2, 4, 1, 2, 4, 4, 0};
 
     enum {REQUEST_ALL = 33, WRITE, READ};
-    const QStringList typeNames = (QStringList() << "uint8" << "uint16" << "uint32" << "int8" << "int16" << "int32" << "float");
+    const QStringList typeNames = (QStringList() << "uint8" << "uint16" << "uint32" << "int8" << "int16" << "int32" << "float" << "String");
 
     void update();
     void updateData();
