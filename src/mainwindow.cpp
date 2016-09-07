@@ -181,11 +181,13 @@ void mMainWindow::checkReceivedCommand()
         QVariant value;
         convStruct conv;
         uint8_t type;
+        uint8_t size;
 
         type = variables[msg.at(2)].type;
-        char * data = msg.mid(4, m_sizes[type]).data();
+        size = msg.at(3);
+        QByteArray data = msg.mid(4, size).data();
 
-        for (int i = 0; i < msg.size(); i++)
+        for (int i = 0; i < size; i++)
         {
             conv.c[i] = data[i];
         }
