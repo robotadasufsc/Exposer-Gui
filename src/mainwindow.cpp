@@ -148,6 +148,14 @@ void mMainWindow::cellChanged(int row, int col)
             QByteArray tempArray(reinterpret_cast<const char*>(&value), sizeof(value));
             array = tempArray;
         }
+        break;
+
+        case STRING:
+        {
+            array = (ui->table->item(row, col)->text()).toLocal8Bit();
+        }
+        break;
+
         default:
             break;
 
@@ -157,7 +165,6 @@ void mMainWindow::cellChanged(int row, int col)
     QByteArray msg;
     msg = createCommand(WRITE, row, array);
     ser->pushCommand(msg);
-    qDebug() << msg;
 }
 
 void mMainWindow::checkReceivedCommand()
@@ -182,11 +189,13 @@ void mMainWindow::checkReceivedCommand()
         QVariant value;
         convStruct conv;
         uint8_t type;
+        uint8_t size;
 
         type = variables[msg.at(2)].type;
-        char * data = msg.mid(4, m_sizes[type]).data();
+        size = msg.at(3);
+        QByteArray data = msg.mid(4, size).data();
 
-        for (int i = 0; i < msg.size(); i++)
+        for (int i = 0; i < size; i++)
         {
             conv.c[i] = data[i];
         }
@@ -221,8 +230,19 @@ void mMainWindow::checkReceivedCommand()
                 value = conv.float32;
                 break;
 
+            case STRING:
+            {
+                QString text;
+                for(uint i = 0; i < size; i++)
+                {
+                    text.append(conv.c[i]);
+                }
+                value = text;
+                break;
+            }
+
             default:
-                value = 0;
+                value = 0.0;
                 break;
 
         }
@@ -301,17 +321,23 @@ void mMainWindow::updateData()
     {
         for (int i = dataList.count(); i < numberOfLists; i++)
         {
-            dataInfo[i] = variables[i].name;
-            QList<QPointF> point;
-            point.append(QPointF(0, 0));
-            dataList.append(point);
+            if(variables[i].type != STRING)
+            {
+                dataInfo[i] = variables[i].name;
+                QList<QPointF> point;
+                point.append(QPointF(0, 0));
+                dataList.append(point);
+            }
         }
         updateTree();
     }
 
     for (int i = 0 ; i < numberOfLists; i++)
     {
-        dataList[i].append(QPointF(dataList[i].last().rx() + 1, variables[i].value.toFloat()));
+        if(variables[i].type != STRING)
+        {
+            dataList[i].append(QPointF(dataList[i].last().rx() + 1, variables[i].value.toFloat()));
+        }
     }
 }
 
@@ -363,11 +389,14 @@ void mMainWindow::updateTree()
     Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
     for (int i = ui->treeWidget->columnCount()-1; i < dataInfo.count(); i++)
     {
-        QTreeWidgetItem * item = new QTreeWidgetItem();
-        item->setFlags(flags);
-        item->setText(0, dataInfo[i]);
-        item->setCheckState(0, Qt::Checked);
-        ui->treeWidget->addTopLevelItem(item);
+        if(variables[i].type != STRING)
+        {
+            QTreeWidgetItem * item = new QTreeWidgetItem();
+            item->setFlags(flags);
+            item->setText(0, dataInfo[i]);
+            item->setCheckState(0, Qt::Checked);
+            ui->treeWidget->addTopLevelItem(item);
+        }
     }
 }
 
