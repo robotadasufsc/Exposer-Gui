@@ -233,7 +233,7 @@ void mMainWindow::checkReceivedCommand()
             case STRING:
             {
                 QString text;
-                for(uint i = 0; i < size; i++)
+                for (uint i = 0; i < size; i++)
                 {
                     text.append(conv.c[i]);
                 }
@@ -321,7 +321,7 @@ void mMainWindow::updateData()
     {
         for (int i = dataList.count(); i < numberOfLists; i++)
         {
-            if(variables[i].type != STRING)
+            if (variables[i].type != STRING)
             {
                 dataInfo[i] = variables[i].name;
                 QList<QPointF> point;
@@ -334,7 +334,7 @@ void mMainWindow::updateData()
 
     for (int i = 0 ; i < numberOfLists; i++)
     {
-        if(variables[i].type != STRING)
+        if (variables[i].type != STRING)
         {
             dataList[i].append(QPointF(dataList[i].last().rx() + 1, variables[i].value.toFloat()));
         }
@@ -387,9 +387,9 @@ void mMainWindow::update()
 void mMainWindow::updateTree()
 {
     Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
-    for (int i = ui->treeWidget->columnCount()-1; i < dataInfo.count(); i++)
+    for (int i = ui->treeWidget->topLevelItemCount(); i < dataInfo.count(); i++)
     {
-        if(variables[i].type != STRING)
+        if (variables[i].type != STRING)
         {
             QTreeWidgetItem * item = new QTreeWidgetItem();
             item->setFlags(flags);
