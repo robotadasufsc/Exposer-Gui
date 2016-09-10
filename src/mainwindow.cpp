@@ -387,7 +387,7 @@ void mMainWindow::update()
 void mMainWindow::updateTree()
 {
     Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
-    for (int i = ui->treeWidget->columnCount()-1; i < dataInfo.count(); i++)
+    for (int i = ui->treeWidget->topLevelItemCount(); i < dataInfo.count(); i++)
     {
         if(variables[i].type != STRING)
         {
