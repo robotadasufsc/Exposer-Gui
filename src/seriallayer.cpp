@@ -62,7 +62,6 @@ void SerialLayer::readData()
             continue;
         }
 
-        uint size = 0;
         char crcf = 0;
         // header operation
         char crc = _head.at(0) ^ _rawData.at(1);
@@ -74,14 +73,16 @@ void SerialLayer::readData()
         // get rest
         if (_rawData.at(3) < _rawData.size() - 4)
         {
-            for (int i = 3 + 1; i < _rawData.at(3) + 4; i++)
+            int i = 3 + 1;
+            uint size = i;
+            for (; i < _rawData.at(3) + 4; i++)
             {
                 crc = crc ^ _rawData.at(i);
                 size = i + 1;
             }
             crcf = _rawData.at(size);
 
-            //qDebug() << "OK ?" << (crc == crcf) << _rawData.left(size);
+            //qDebug() << "OK ?" << (crc == crcf) << _rawData << _rawData.left(size) << size;
 
             if (crc == crcf)
             {
