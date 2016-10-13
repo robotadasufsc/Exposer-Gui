@@ -1,4 +1,4 @@
-# Exposer-Gui (a Qt-based Gui for Exposer)
+# Exposer-Gui (a Qt-based Gui for Exposer) [![Build Status](https://travis-ci.org/robotadasufsc/Exposer-Gui.svg?branch=dev)](https://travis-ci.org/robotadasufsc/Exposer-Gui)
 
 ### Description
 
