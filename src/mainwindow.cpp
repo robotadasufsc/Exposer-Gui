@@ -428,6 +428,7 @@ void mMainWindow::checkStartButton()
     }
     else
     {
+        ser->closeConnection();
         ui->pushButton->setText("Continue");
         updateTimer->stop();
         dataTimer->stop();
