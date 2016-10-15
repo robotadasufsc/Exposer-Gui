@@ -180,7 +180,6 @@ void mMainWindow::checkReceivedCommand()
         //[id].name = name
         variables[msg.at(2)].name = msg.mid(4, msg.at(3) - 1);
         variables[msg.at(2)].type = msg.at(4 + msg.at(3) - 1);
-        numberOfLists = variables.count();
     }
 
     //value
@@ -316,6 +315,13 @@ void mMainWindow::checkPushedCommands(QByteArray bmsg)
 
 void mMainWindow::updateData()
 {
+    numberOfLists = 0;
+    for (const auto var: variables)
+    {
+        if (var.type != STRING)
+            numberOfLists++;
+    }
+
     //update with fake data
     if (dataList.count() < numberOfLists)
     {
@@ -353,30 +359,23 @@ void mMainWindow::update()
         QXYSeries* line1 = new QLineSeries();
 
         line1->setName(dataInfo[lineNuber]);
+
+        if (list.count() < ui->spinBox->value())
+            line1->append(list);
+        else
+            line1->append(list.mid(list.count()-ui->spinBox->value()));
+        qDebug() << line1->points();
         if (seriesList.size() > lineNuber)
         {
-            if (list.count() < ui->spinBox->value())
-                line1->append(list);
-            else
-                line1->append(list.mid(list.count()-ui->spinBox->value()));
-
             if (!seriesList[lineNuber]->isVisible())
                 line1->hide();
-        }
-        else
-        {
-            if (list.count() < ui->spinBox->value())
-                line1->append(list);
-            else
-                line1->append(list.mid(list.count()-ui->spinBox->value()));
         }
 
         lineNuber++;
         c->addSeries(line1);
     }
-
-    c->createDefaultAxes();
     c->setTheme(QChart::ChartThemeDark);
+    c->createDefaultAxes();
     //To avoid memory leaks need to make sure the previous chart is deleted.
     QChart* willBeDeleted = ui->widget->chart();;
     ui->widget->setChart(c);
@@ -428,6 +427,7 @@ void mMainWindow::checkStartButton()
     }
     else
     {
+        ser->closeConnection();
         ui->pushButton->setText("Continue");
         updateTimer->stop();
         dataTimer->stop();
