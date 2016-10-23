@@ -57,6 +57,34 @@ mMainWindow::mMainWindow(QWidget *parent) :
     connect(ser, &SerialLayer::receivedCommand, this, &mMainWindow::checkReceivedCommand);
     connect(ser, &SerialLayer::pushedCommand, this, &mMainWindow::checkPushedCommands);
     connect(ui->comm, &QLineEdit::returnPressed, this, &mMainWindow::getComm);
+
+    connect(ui->actionSave, &QAction::triggered, this, &mMainWindow::save);
+}
+
+void mMainWindow::save(bool status)
+{
+    // Note that if a file with the name newName already exists, copy() returns false (i.e. QFile will not overwrite it).
+    QString saveFileName = QFileDialog::getSaveFileName(this, tr("Save Log to file (abbreviaton)"), "log");
+    unsigned int i = 0;
+    for (const auto list: dataList)
+    {
+        QFile file(QString("%0-%1.csv").arg(saveFileName, dataInfo[i]));
+        QTextStream out(&file);
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            QMessageBox::information(this, tr("Error"), tr("File problem."));
+            return;
+        }
+
+        out << "index" << ',' << dataInfo[i++] << '\n';
+
+        for (const auto value: list)
+        {
+            out << value.x() << ',' << value.y() << '\n';
+        }
+
+        file.close();
+    }
 }
 
 QString mMainWindow::getTime()
