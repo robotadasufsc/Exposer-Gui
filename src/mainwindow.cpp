@@ -364,7 +364,6 @@ void mMainWindow::update()
             line1->append(list);
         else
             line1->append(list.mid(list.count()-ui->spinBox->value()));
-        qDebug() << line1->points();
         if (seriesList.size() > lineNuber)
         {
             if (!seriesList[lineNuber]->isVisible())
