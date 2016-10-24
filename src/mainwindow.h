@@ -56,6 +56,7 @@ private:
     QByteArray createCommand(char op, char target, QByteArray data);
     void getComm();
     void askForData();
+    void save(bool status);
     int numberOfLists;
     uint baudrate;
     bool running;
