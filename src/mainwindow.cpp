@@ -412,15 +412,14 @@ void mMainWindow::update()
 
 void mMainWindow::updateTree()
 {
-    Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
     for (int i = ui->treeWidget->topLevelItemCount(); i < dataInfo.count(); i++)
     {
         if (variables[i].type != STRING)
         {
             QTreeWidgetItem * item = new QTreeWidgetItem();
-            item->setFlags(flags);
             item->setText(0, dataInfo[i]);
             item->setCheckState(0, Qt::Checked);
+            item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
             ui->treeWidget->addTopLevelItem(item);
         }
     }
