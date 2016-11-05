@@ -30,7 +30,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui->spinBox->setValue(100);
     ui->comm->setPlaceholderText("Operation Target [Data]: 33 0; 35 0; 34 0 1");
 
-    ui->table->setRowCount(4);
+    ui->table->setRowCount(0);
     ui->table->setColumnCount(4);
     QStringList tableHeader;
     tableHeader <<"Name" << "Type" << "Value" << "Enter";
@@ -301,6 +301,7 @@ void mMainWindow::checkReceivedCommand()
         else
         {
             QTableWidgetItem *newItem = new QTableWidgetItem(QString(var.name));
+            newItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
             ui->table->setItem(line, 0, newItem);
         }
 
@@ -315,6 +316,7 @@ void mMainWindow::checkReceivedCommand()
         else
         {
             QTableWidgetItem *newItem = new QTableWidgetItem(var.value.toString());
+            newItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
             ui->table->setItem(line, 1, newItem);
         }
 
@@ -330,6 +332,7 @@ void mMainWindow::checkReceivedCommand()
         else
         {
             QTableWidgetItem *newItem = new QTableWidgetItem(var.value.toString());
+            newItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
             ui->table->setItem(line, 2, newItem);
         }
     }
@@ -412,15 +415,14 @@ void mMainWindow::update()
 
 void mMainWindow::updateTree()
 {
-    Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
     for (int i = ui->treeWidget->topLevelItemCount(); i < dataInfo.count(); i++)
     {
         if (variables[i].type != STRING)
         {
             QTreeWidgetItem * item = new QTreeWidgetItem();
-            item->setFlags(flags);
             item->setText(0, dataInfo[i]);
             item->setCheckState(0, Qt::Checked);
+            item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
             ui->treeWidget->addTopLevelItem(item);
         }
     }
