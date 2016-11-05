@@ -332,6 +332,7 @@ void mMainWindow::checkReceivedCommand()
         else
         {
             QTableWidgetItem *newItem = new QTableWidgetItem(var.value.toString());
+            newItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
             ui->table->setItem(line, 2, newItem);
         }
     }
