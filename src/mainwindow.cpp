@@ -30,7 +30,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui->spinBox->setValue(100);
     ui->comm->setPlaceholderText("Operation Target [Data]: 33 0; 35 0; 34 0 1");
 
-    ui->table->setRowCount(4);
+    ui->table->setRowCount(0);
     ui->table->setColumnCount(4);
     QStringList tableHeader;
     tableHeader <<"Name" << "Type" << "Value" << "Enter";
