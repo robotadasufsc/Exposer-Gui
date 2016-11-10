@@ -114,8 +114,13 @@ void  mMainWindow::addLog(QByteArray msg)
 
 void mMainWindow::cellChanged(int row, int col)
 {
-    float value = (ui->table->item(row, col)->text()).toFloat();
+    float value;
     QByteArray array;
+
+    if (variables[row].type != STRING)
+    {
+        value = (ui->table->item(row, col)->text()).toFloat();
+    }
 
     //http://stackoverflow.com/questions/2773977/convert-from-float-to-qbytearray
     switch (variables[row].type)
