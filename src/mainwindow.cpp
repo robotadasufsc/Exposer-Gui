@@ -114,9 +114,6 @@ void  mMainWindow::addLog(QByteArray msg)
 
 void mMainWindow::cellChanged(int row, int col)
 {
-    if (col != 3)
-        return;
-
     float value = (ui->table->item(row, col)->text()).toFloat();
     QByteArray array;
 
