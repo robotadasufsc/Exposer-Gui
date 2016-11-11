@@ -56,6 +56,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
 
 void mMainWindow::save(bool status)
 {
+    Q_UNUSED(status);
     // Note that if a file with the name newName already exists, copy() returns false (i.e. QFile will not overwrite it).
     QString saveFileName = QFileDialog::getSaveFileName(this, tr("Save Log to file (abbreviaton)"), "log");
     unsigned int i = 0;
