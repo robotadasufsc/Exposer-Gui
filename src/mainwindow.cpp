@@ -119,6 +119,10 @@ void mMainWindow::cellChanged(int row, int col)
     float value;
     QByteArray array;
 
+    // This function is make only for the user input in the col 3
+    if (!evars->isValid(row) || col != 3)
+        return;
+
     if (variables[row].type != STRING)
     {
         value = (ui->table->item(row, col)->text()).toFloat();
