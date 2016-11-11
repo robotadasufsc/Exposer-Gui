@@ -56,6 +56,7 @@ private:
     void cellChanged(int row, int col);
     void checkReceivedCommand();
     void checkPushedCommands(QByteArray bmsg);
+    void updateTable();
     QByteArray createCommand(char op, char target, QByteArray data);
     void getComm();
     void askForData();
