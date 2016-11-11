@@ -1,6 +1,7 @@
 #include <QTime>
 #include "mainwindow.h"
 #include "seriallayer.h"
+#include "exposervariables.h"
 #include "ui_mainwindow.h"
 
 struct Variable
@@ -19,6 +20,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
     dataTimer(new QTimer(this)),
     askForDataTimer(new QTimer(this)),
     ser(new SerialLayer(this)),
+    evars(new ExposerVariables(this)),
     numberOfLists(0),
     baudrate(115200),
     running(false)

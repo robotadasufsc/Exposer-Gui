@@ -12,6 +12,8 @@ class MainWindow;
 
 class SerialLayer;
 
+class ExposerVariables;
+
 class mMainWindow : public QMainWindow
 {
 
@@ -25,6 +27,7 @@ private:
     QTimer *dataTimer;
     QTimer *askForDataTimer;
     SerialLayer *ser;
+    ExposerVariables *evars;
     union convStruct
     {
         uint8_t uint8;
