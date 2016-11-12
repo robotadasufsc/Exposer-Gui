@@ -29,7 +29,7 @@ $ sudo pacman -S qt5 cmake git
 [download Qt5](https://wiki.qt.io/Install_Qt_5_on_Ubuntu) (Make sure you ticked
 "QtCharts" on the installation);
 ```sh
-$ sudo pat-get install cmake git
+$ sudo apt-get install cmake git
 ```
 ### Installation
 
