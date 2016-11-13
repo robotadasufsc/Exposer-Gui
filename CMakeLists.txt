@@ -23,6 +23,9 @@ set(EXPOSERGUI_PART_SRCS
     submodules/QDarkStyleSheet/qdarkstyle/style.qss
     submodules/QDarkStyleSheet/qdarkstyle/style.qrc
 )
+
+file(COPY submodules DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 qt5_wrap_ui(EXPOSERGUI_PART_SRCS ${EXPOSERGUI_PART_UI})
 ADD_EXECUTABLE(exposer-gui ${EXPOSERGUI_PART_SRCS})
 TARGET_LINK_LIBRARIES(exposer-gui
