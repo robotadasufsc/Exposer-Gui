@@ -7,7 +7,7 @@ int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
 
-    QFile f("../submodules/QDarkStyleSheet/qdarkstyle/style.qss");
+    QFile f("submodules/QDarkStyleSheet/qdarkstyle/style.qss");
 
     if (!f.exists())
     {
