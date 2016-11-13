@@ -59,10 +59,13 @@ void mMainWindow::save(bool status)
     Q_UNUSED(status);
     // Note that if a file with the name newName already exists, copy() returns false (i.e. QFile will not overwrite it).
     QString saveFileName = QFileDialog::getSaveFileName(this, tr("Save Log to file (abbreviaton)"), "log");
-    unsigned int i = 0;
-    for (const auto list: dataList)
+
+    for (const auto list: evars->indiceToVarInfo)
     {
-        QFile file(QString("%0-%1.csv").arg(saveFileName, dataInfo[i]));
+        if (list.done != true)
+            continue;
+
+        QFile file(QString("%0-%1.csv").arg(saveFileName, list.name));
         QTextStream out(&file);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
         {
@@ -70,11 +73,13 @@ void mMainWindow::save(bool status)
             return;
         }
 
-        out << "index" << ',' << dataInfo[i++] << '\n';
+        out << "index" << ',' << list.name << '\n';
 
-        for (const auto value: list)
+        uint x = 0;
+        for (auto &value: *list.QVariantList)
         {
-            out << value.x() << ',' << value.y() << '\n';
+            // To no deal with the QVariant's type, we save the string
+            out << x << ',' << value.toString() << '\n';
         }
 
         file.close();
