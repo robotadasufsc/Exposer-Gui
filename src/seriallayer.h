@@ -18,6 +18,7 @@ private:
     void readData();
 
     static QByteArray _head;
+    static QByteArray _serialPath;
 
     bool _serialOpened;
     QByteArray _rawData;

@@ -5,6 +5,12 @@
 
 QByteArray SerialLayer::_head = QByteArray("<");
 
+#if (defined (_WIN32) || defined (_WIN64))
+    QByteArray SerialLayer::_serialPath = QByteArray();
+#else
+    QByteArray SerialLayer::_serialPath = QByteArray("/dev/");
+#endif
+
 SerialLayer::SerialLayer(QWidget *parent):
     serial(new QSerialPort()),
     _serialOpened(false)
@@ -32,7 +38,7 @@ QStringList SerialLayer::serialList()
     {
         for (const auto &serialPortInfo: serialPortInfoList)
         {
-            ports.append("/dev/" + serialPortInfo.portName());
+            ports.append(_serialPath + serialPortInfo.portName());
         }
     }
     else
