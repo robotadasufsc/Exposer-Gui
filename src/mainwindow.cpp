@@ -1,4 +1,5 @@
 #include <QTime>
+#include <QElapsedTimer>
 #include "mainwindow.h"
 #include "seriallayer.h"
 #include "exposervariables.h"
@@ -10,6 +11,7 @@ mMainWindow::mMainWindow(QWidget *parent) :
     updateTimer(new QTimer(this)),
     dataTimer(new QTimer(this)),
     askForDataTimer(new QTimer(this)),
+    elapsedTimer(new QElapsedTimer()),
     ser(new SerialLayer(this)),
     evars(new ExposerVariables(this)),
     numberOfLists(0),
@@ -30,6 +32,8 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui->table->setHorizontalHeaderLabels(tableHeader);
     ui->table->setStyleSheet("QTableView {selection-background-color: gray;}");
     ui->table->horizontalHeader()->setStretchLastSection(true);
+
+    elapsedTimer->start();
 
     connect(updateTimer, &QTimer::timeout, this, &mMainWindow::update);
     updateTimer->setInterval(100);
@@ -75,11 +79,10 @@ void mMainWindow::save(bool status)
 
         out << "index" << ',' << list.name << '\n';
 
-        uint x = 0;
         for (auto &value: *list.QVariantList)
         {
             // To no deal with the QVariant's type, we save the string
-            out << x << ',' << value.toString() << '\n';
+            out << value.time << ',' << value.var.toString() << '\n';
         }
 
         file.close();
@@ -287,7 +290,7 @@ void mMainWindow::checkReceivedCommand()
 
         }
 
-        evars->append(msgIndice, value);
+        evars->append(msgIndice, value, elapsedTimer->nsecsElapsed());
     }
 
     if (ui->table->rowCount() < evars->size())
@@ -537,5 +540,6 @@ void mMainWindow::getComm()
 
 mMainWindow::~mMainWindow()
 {
+    delete elapsedTimer;
     delete ui;
 }

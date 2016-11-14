@@ -10,6 +10,8 @@ namespace Ui
 class MainWindow;
 }
 
+class QElapsedTimer;
+
 class SerialLayer;
 
 class ExposerVariables;
@@ -26,6 +28,7 @@ private:
     QTimer *updateTimer;
     QTimer *dataTimer;
     QTimer *askForDataTimer;
+    QElapsedTimer *elapsedTimer;
     SerialLayer *ser;
     ExposerVariables *evars;
     union convStruct
