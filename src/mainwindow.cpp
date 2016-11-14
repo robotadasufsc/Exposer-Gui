@@ -493,7 +493,7 @@ QByteArray mMainWindow::createCommand(char op, char target, QByteArray data)
         msg.append(data);
 
     char crc = msg.at(0) ^ msg.at(0);
-    for (const auto byte: msg)
+    for (const auto &byte: msg)
         crc ^= byte;
 
     msg.append(crc);
