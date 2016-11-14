@@ -20,7 +20,7 @@ class mMainWindow : public QMainWindow
 {
 
 public:
-    explicit mMainWindow(QWidget *parent = NULL);
+    mMainWindow(QWidget* parent = nullptr);
     ~mMainWindow();
 
 private:
