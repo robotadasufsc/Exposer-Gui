@@ -236,11 +236,9 @@ void mMainWindow::checkReceivedCommand()
         uint8_t type = evars->getType(msgIndice);
         uint8_t size = msg.at(3);
 
-        QByteArray data = msg.mid(4, size).data();
-
         for (int i = 0; i < size; i++)
         {
-            conv.c[i] = data[i];
+            conv.c[i] = msg.at(4+i);
         }
 
         switch (type)
@@ -270,7 +268,7 @@ void mMainWindow::checkReceivedCommand()
                 break;
 
             case ExposerVariables::FLOAT:
-                value = conv.float32;
+                value = (float)conv.float32;
                 break;
 
             case ExposerVariables::STRING:
