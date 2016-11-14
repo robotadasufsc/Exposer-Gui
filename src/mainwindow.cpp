@@ -538,6 +538,7 @@ void mMainWindow::getComm()
 
 mMainWindow::~mMainWindow()
 {
+    ser->closeConnection();
     delete elapsedTimer;
     delete ui;
 }
