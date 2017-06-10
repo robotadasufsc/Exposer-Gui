@@ -27,6 +27,8 @@ set(EXPOSERGUI_PART_SRCS
     submodules/QDarkStyleSheet/qdarkstyle/style.qrc
 )
 
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
 file(COPY submodules DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 qt5_wrap_ui(EXPOSERGUI_PART_SRCS ${EXPOSERGUI_PART_UI})
