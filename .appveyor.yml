@@ -39,7 +39,7 @@ install:
 
 build_script:
   - pwd
-  - cd C:\projects\exposer-gui
+  - cd %APPVEYOR_BUILD_FOLDER%
   - pwd
   - git submodule init
   - git submodule update
