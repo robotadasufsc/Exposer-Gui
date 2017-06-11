@@ -34,7 +34,7 @@ private:
         int16_t int16;
         int32_t int32;
         float float32;
-        char c[0];
+        char c[128];
     };
 
     enum {UINT8, UINT16, UINT32, INT8, INT16, INT32, FLOAT, STRING};
