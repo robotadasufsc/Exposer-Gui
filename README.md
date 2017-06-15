@@ -25,12 +25,19 @@ Here are the names of the packages needed for some distributions (subject to cha
 ```sh
 $ sudo pacman -S qt5 cmake git
 ```
-#### Debian/Ubuntu
+#### Debian/Ubuntu 17.04-
 [download Qt5](https://wiki.qt.io/Install_Qt_5_on_Ubuntu) (Make sure you ticked
 "QtCharts" on the installation);
 ```sh
 $ sudo apt-get install cmake git
 ```
+
+### Ubuntu 17.10+
+```bash
+$ apt-get update
+$ apt-get install qt5-default qt5-doc git gcc g++ cmake libqt5charts5* libqt5serial*
+```
+
 ### Installation
 
 ```
@@ -40,8 +47,8 @@ $ git submodule init
 $ git submodule update
 $ mkdir build && cd build
 ```
-Run `cmake .. -DCMAKE_PREFIX_PATH=/opt/Qt5.7.0/5.7/gcc_64` in Debian/Ubuntu or
-`cmake ..` in Arch.
+Run `cmake .. -DCMAKE_PREFIX_PATH=/opt/Qt5.7.0/5.7/gcc_64` in Debian/Ubuntu 17.04- or
+`cmake ..` in Arch/Ubuntu 17.10+.
 ```
 $ make
 $ ./exposer-gui
