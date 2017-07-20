@@ -1,16 +1,9 @@
 #include <QTime>
+#include <QElapsedTimer>
 #include "mainwindow.h"
 #include "seriallayer.h"
+#include "exposervariables.h"
 #include "ui_mainwindow.h"
-
-struct Variable
-{
-    uint type;
-    QString name;
-    QVariant value;
-};
-
-QMap<int, Variable> variables;
 
 mMainWindow::mMainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -18,7 +11,9 @@ mMainWindow::mMainWindow(QWidget *parent) :
     updateTimer(new QTimer(this)),
     dataTimer(new QTimer(this)),
     askForDataTimer(new QTimer(this)),
+    elapsedTimer(new QElapsedTimer()),
     ser(new SerialLayer(this)),
+    evars(new ExposerVariables(this)),
     numberOfLists(0),
     baudrate(115200),
     running(false)
@@ -37,6 +32,8 @@ mMainWindow::mMainWindow(QWidget *parent) :
     ui->table->setHorizontalHeaderLabels(tableHeader);
     ui->table->setStyleSheet("QTableView {selection-background-color: gray;}");
     ui->table->horizontalHeader()->setStretchLastSection(true);
+
+    elapsedTimer->start();
 
     connect(updateTimer, &QTimer::timeout, this, &mMainWindow::update);
     updateTimer->setInterval(100);
@@ -63,12 +60,16 @@ mMainWindow::mMainWindow(QWidget *parent) :
 
 void mMainWindow::save(bool status)
 {
+    Q_UNUSED(status);
     // Note that if a file with the name newName already exists, copy() returns false (i.e. QFile will not overwrite it).
     QString saveFileName = QFileDialog::getSaveFileName(this, tr("Save Log to file (abbreviaton)"), "log");
-    unsigned int i = 0;
-    for (const auto list: dataList)
+
+    for (const auto list: evars->indiceToVarInfo)
     {
-        QFile file(QString("%0-%1.csv").arg(saveFileName, dataInfo[i]));
+        if (list.done != true)
+            continue;
+
+        QFile file(QString("%0-%1.csv").arg(saveFileName, list.name));
         QTextStream out(&file);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
         {
@@ -76,11 +77,12 @@ void mMainWindow::save(bool status)
             return;
         }
 
-        out << "index" << ',' << dataInfo[i++] << '\n';
+        out << "index" << ',' << list.name << '\n';
 
-        for (const auto value: list)
+        for (auto &value: *list.QVariantList)
         {
-            out << value.x() << ',' << value.y() << '\n';
+            // To no deal with the QVariant's type, we save the string
+            out << value.time << ',' << value.var.toString() << '\n';
         }
 
         file.close();
@@ -114,16 +116,22 @@ void  mMainWindow::addLog(QByteArray msg)
 
 void mMainWindow::cellChanged(int row, int col)
 {
-    if (col != 3)
-        return;
-
-    float value = (ui->table->item(row, col)->text()).toFloat();
+    float value;
     QByteArray array;
 
-    //http://stackoverflow.com/questions/2773977/convert-from-float-to-qbytearray
-    switch (variables[row].type)
+    // This function is make only for the user input in the col 3
+    if (!evars->isValid(row) || col != 3)
+        return;
+
+    if (evars->getType(row) != ExposerVariables::STRING)
     {
-        case UINT8:
+        value = (ui->table->item(row, col)->text()).toFloat();
+    }
+
+    //http://stackoverflow.com/questions/2773977/convert-from-float-to-qbytearray
+    switch (evars->getType(row))
+    {
+        case ExposerVariables::UINT8:
         {
             uint8_t convValue = (uint8_t) value;
             QByteArray tempArray(reinterpret_cast<const char*>(&convValue), sizeof(convValue));
@@ -131,7 +139,7 @@ void mMainWindow::cellChanged(int row, int col)
         }
         break;
 
-        case UINT16:
+        case ExposerVariables::UINT16:
         {
             uint16_t convValue = (uint16_t) value;
             QByteArray tempArray(reinterpret_cast<const char*>(&convValue), sizeof(convValue));
@@ -139,7 +147,7 @@ void mMainWindow::cellChanged(int row, int col)
         }
         break;
 
-        case UINT32:
+        case ExposerVariables::UINT32:
         {
             uint32_t convValue = (uint32_t) value;
             QByteArray tempArray(reinterpret_cast<const char*>(&convValue), sizeof(convValue));
@@ -147,7 +155,7 @@ void mMainWindow::cellChanged(int row, int col)
         }
         break;
 
-        case INT8:
+        case ExposerVariables::INT8:
         {
             int8_t convValue = (int8_t) value;
             QByteArray tempArray(reinterpret_cast<const char*>(&convValue), sizeof(convValue));
@@ -155,7 +163,7 @@ void mMainWindow::cellChanged(int row, int col)
         }
         break;
 
-        case INT16:
+        case ExposerVariables::INT16:
         {
             int16_t convValue = (int16_t) value;
             QByteArray tempArray(reinterpret_cast<const char*>(&convValue), sizeof(convValue));
@@ -163,7 +171,7 @@ void mMainWindow::cellChanged(int row, int col)
         }
         break;
 
-        case INT32:
+        case ExposerVariables::INT32:
         {
             int32_t convValue = (int32_t) value;
             QByteArray tempArray(reinterpret_cast<const char*>(&convValue), sizeof(convValue));
@@ -171,14 +179,15 @@ void mMainWindow::cellChanged(int row, int col)
         }
         break;
 
-        case FLOAT:
+        case ExposerVariables::FLOAT:
         {
-            QByteArray tempArray(reinterpret_cast<const char*>(&value), sizeof(value));
+            float convValue = (float) value;
+            QByteArray tempArray(reinterpret_cast<const char*>(&convValue), sizeof(convValue));
             array = tempArray;
         }
         break;
 
-        case STRING:
+        case ExposerVariables::STRING:
         {
             array = (ui->table->item(row, col)->text()).toLocal8Bit();
         }
@@ -202,62 +211,67 @@ void mMainWindow::checkReceivedCommand()
     QByteArray msg = ser->popCommand();
     addLog(msg);
 
+    uint msgType = msg.at(1);
+    uint msgIndice = msg.at(2);
+
     //request all
-    if (msg.at(1) == REQUEST_ALL)
+    if (msgType == REQUEST_ALL)
     {
         //[id].name = name
-        variables[msg.at(2)].name = msg.mid(4, msg.at(3) - 1);
-        variables[msg.at(2)].type = msg.at(4 + msg.at(3) - 1);
+        QString name = msg.mid(4, msg.at(3) - 1);
+        uint type = msg.at(4 + msg.at(3) - 1);
+
+        if (name == QString())
+            return;
+
+        evars->setIndiceName(name, msgIndice);
+        evars->setType(msgIndice, type);
     }
 
     //value
-    if (msg.at(1) == READ)
+    if (msgType == READ)
     {
         QVariant value;
         convStruct conv;
-        uint8_t type;
-        uint8_t size;
-
-        type = variables[msg.at(2)].type;
-        size = msg.at(3);
-        QByteArray data = msg.mid(4, size).data();
+        uint8_t type = evars->getType(msgIndice);
+        uint8_t size = msg.at(3);
 
         for (int i = 0; i < size; i++)
         {
-            conv.c[i] = data[i];
+            conv.c[i] = msg.at(4+i);
         }
 
         switch (type)
         {
-            case UINT8:
+            case ExposerVariables::UINT8:
                 value = conv.uint8;
                 break;
 
-            case UINT16:
+            case ExposerVariables::UINT16:
                 value = conv.uint16;
                 break;
 
-            case UINT32:
+            case ExposerVariables::UINT32:
                 value = conv.uint32;
                 break;
 
-            case INT8:
+            case ExposerVariables::INT8:
                 value = conv.int8;
                 break;
 
-            case INT16:
+            case ExposerVariables::INT16:
                 value = conv.int16;
                 break;
 
-            case INT32:
+            case ExposerVariables::INT32:
                 value = conv.int32;
                 break;
 
-            case FLOAT:
-                value = conv.float32;
+            case ExposerVariables::FLOAT:
+                value = (float)conv.float32;
                 break;
 
-            case STRING:
+            case ExposerVariables::STRING:
             {
                 QString text;
                 for (uint i = 0; i < size; i++)
@@ -273,70 +287,68 @@ void mMainWindow::checkReceivedCommand()
                 break;
 
         }
-        variables[msg.at(2)].value = value;
+
+        evars->append(msgIndice, value, elapsedTimer->nsecsElapsed());
     }
 
-    if (ui->table->rowCount() < variables.size())
+    if (ui->table->rowCount() < evars->size())
     {
-        ui->table->setRowCount(variables.size());
+        ui->table->setRowCount(evars->size());
     }
 
-    // should be moved somewhere else! updateTable(), perhaps?
+    updateTable();
+}
 
-    QMapIterator<int, Variable> i(variables);
-    while (i.hasNext())
+void mMainWindow::updateTable()
+{
+    for (int i = 0; i < evars->size(); i++)
     {
-        i.next();
-        auto var = i.value();
-        int line = i.key();
-
-        QTableWidgetItem* item = ui->table->item(line, 0);
+        QTableWidgetItem* item = ui->table->item(i, 0);
         if (item != nullptr)
         {
-            if (item->text() != var.name)
+            if (item->text() != evars->getName(i))
             {
-                item->setText(var.name);
+                item->setText(evars->getName(i));
             }
         }
         else
         {
-            QTableWidgetItem *newItem = new QTableWidgetItem(QString(var.name));
+            QTableWidgetItem *newItem = new QTableWidgetItem(evars->getName(i));
             newItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
-            ui->table->setItem(line, 0, newItem);
+            ui->table->setItem(i, 0, newItem);
         }
 
-        QTableWidgetItem* itemType = ui->table->item(line, 1);
+        QTableWidgetItem* itemType = ui->table->item(i, 1);
         if (itemType != nullptr)
         {
-            if (itemType->text() != typeNames[var.type])
+            if (itemType->text() != typeNames[evars->getType(i)])
             {
-                itemType->setText(typeNames[var.type]);
+                itemType->setText(typeNames[evars->getType(i)]);
             }
         }
         else
         {
-            QTableWidgetItem *newItem = new QTableWidgetItem(var.value.toString());
+            QTableWidgetItem *newItem = new QTableWidgetItem(evars->getLast(i).toString());
             newItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
-            ui->table->setItem(line, 1, newItem);
+            ui->table->setItem(i, 1, newItem);
         }
 
 
-        QTableWidgetItem* itemValue = ui->table->item(line, 2);
+        QTableWidgetItem* itemValue = ui->table->item(i, 2);
         if (itemValue != nullptr)
         {
-            if (itemValue->text() != var.value.toString())
+            if (itemValue->text() != evars->getLast(i).toString())
             {
-                itemValue->setText(var.value.toString());
+                itemValue->setText(evars->getLast(i).toString());
             }
         }
         else
         {
-            QTableWidgetItem *newItem = new QTableWidgetItem(var.value.toString());
+            QTableWidgetItem *newItem = new QTableWidgetItem(evars->getLast(i).toString());
             newItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
-            ui->table->setItem(line, 2, newItem);
+            ui->table->setItem(i, 2, newItem);
         }
     }
-
 }
 
 void mMainWindow::checkPushedCommands(QByteArray bmsg)
@@ -347,9 +359,11 @@ void mMainWindow::checkPushedCommands(QByteArray bmsg)
 void mMainWindow::updateData()
 {
     numberOfLists = 0;
-    for (const auto var: variables)
+    for (int i = 0; i < evars->size(); i++)
     {
-        if (var.type != STRING)
+        if (!evars->isValid(i))
+            continue;
+        if (evars->getType(i) != ExposerVariables::STRING)
             numberOfLists++;
     }
 
@@ -358,9 +372,11 @@ void mMainWindow::updateData()
     {
         for (int i = dataList.count(); i < numberOfLists; i++)
         {
-            if (variables[i].type != STRING)
+            if (!evars->isValid(i))
+                continue;
+            if (evars->getType(i) != ExposerVariables::STRING)
             {
-                dataInfo[i] = variables[i].name;
+                dataInfo[i] = evars->getName(i);
                 QList<QPointF> point;
                 point.append(QPointF(0, 0));
                 dataList.append(point);
@@ -371,9 +387,11 @@ void mMainWindow::updateData()
 
     for (int i = 0 ; i < numberOfLists; i++)
     {
-        if (variables[i].type != STRING)
+        if (!evars->isValid(i))
+            continue;
+        if (evars->getType(i) != ExposerVariables::STRING)
         {
-            dataList[i].append(QPointF(dataList[i].last().rx() + 1, variables[i].value.toFloat()));
+            dataList[i].append(QPointF(dataList[i].last().rx() + 1, evars->getLast(i).toFloat()));
         }
     }
 }
@@ -417,7 +435,7 @@ void mMainWindow::updateTree()
 {
     for (int i = ui->treeWidget->topLevelItemCount(); i < dataInfo.count(); i++)
     {
-        if (variables[i].type != STRING)
+        if (evars->getType(i) != ExposerVariables::STRING)
         {
             QTreeWidgetItem * item = new QTreeWidgetItem();
             item->setText(0, dataInfo[i]);
@@ -475,7 +493,7 @@ QByteArray mMainWindow::createCommand(char op, char target, QByteArray data)
         msg.append(data);
 
     char crc = msg.at(0) ^ msg.at(0);
-    for (const auto byte: msg)
+    for (const auto &byte: msg)
         crc ^= byte;
 
     msg.append(crc);
@@ -486,9 +504,9 @@ QByteArray mMainWindow::createCommand(char op, char target, QByteArray data)
 void mMainWindow::askForData()
 {
 
-    if (variables.count() > 0)
+    if (evars->size() > 0)
     {
-        for (int i = 0; i < variables.count(); i++)
+        for (int i = 0; i < evars->size(); i++)
         {
             auto msg = createCommand(READ, i, QByteArray());
             ser->pushCommand(msg);
@@ -520,5 +538,7 @@ void mMainWindow::getComm()
 
 mMainWindow::~mMainWindow()
 {
+    ser->closeConnection();
+    delete elapsedTimer;
     delete ui;
 }

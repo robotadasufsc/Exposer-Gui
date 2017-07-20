@@ -10,13 +10,17 @@ namespace Ui
 class MainWindow;
 }
 
+class QElapsedTimer;
+
 class SerialLayer;
+
+class ExposerVariables;
 
 class mMainWindow : public QMainWindow
 {
 
 public:
-    explicit mMainWindow(QWidget *parent = NULL);
+    mMainWindow(QWidget* parent = nullptr);
     ~mMainWindow();
 
 private:
@@ -24,7 +28,9 @@ private:
     QTimer *updateTimer;
     QTimer *dataTimer;
     QTimer *askForDataTimer;
+    QElapsedTimer *elapsedTimer;
     SerialLayer *ser;
+    ExposerVariables *evars;
     union convStruct
     {
         uint8_t uint8;
@@ -53,6 +59,7 @@ private:
     void cellChanged(int row, int col);
     void checkReceivedCommand();
     void checkPushedCommands(QByteArray bmsg);
+    void updateTable();
     QByteArray createCommand(char op, char target, QByteArray data);
     void getComm();
     void askForData();

@@ -23,6 +23,7 @@ set(EXPOSERGUI_PART_SRCS
     src/main.cpp
     src/mainwindow.cpp
     src/seriallayer.cpp
+    src/exposervariables.cpp
     submodules/QDarkStyleSheet/qdarkstyle/style.qss
     submodules/QDarkStyleSheet/qdarkstyle/style.qrc
 )
